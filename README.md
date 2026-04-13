@@ -13,10 +13,18 @@ It is designed for the same basic external-plugin workflow as the Slimelab A1111
 
 ## Install
 
+This repo is currently private, so anonymous `raw.githubusercontent.com` one-liners will 404.
+
 ### Normal install/update
 
 ```bash
-TMPDIR="$(mktemp -d)" && trap 'rm -rf "$TMPDIR"' EXIT && git clone https://github.com/slimelab-ai/openclaw-voxcpm2-plugin "$TMPDIR/openclaw-voxcpm2-plugin" && openclaw plugins install --force "$TMPDIR/openclaw-voxcpm2-plugin"
+TMPDIR="$(mktemp -d)" && trap 'rm -rf "$TMPDIR"' EXIT && git clone git@github.com:slimelab-ai/openclaw-voxcpm2-plugin.git "$TMPDIR/openclaw-voxcpm2-plugin" && openclaw plugins install --force "$TMPDIR/openclaw-voxcpm2-plugin"
+```
+
+If SSH auth is not configured but HTTPS auth is, use:
+
+```bash
+TMPDIR="$(mktemp -d)" && trap 'rm -rf "$TMPDIR"' EXIT && git clone https://github.com/slimelab-ai/openclaw-voxcpm2-plugin.git "$TMPDIR/openclaw-voxcpm2-plugin" && openclaw plugins install --force "$TMPDIR/openclaw-voxcpm2-plugin"
 ```
 
 ### Local dev install
@@ -27,9 +35,8 @@ openclaw plugins install -l /path/to/openclaw-voxcpm2-plugin
 
 ### Repo-hosted installer script
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/slimelab-ai/openclaw-voxcpm2-plugin/main/install.sh | bash
-```
+Not usable via anonymous `raw.githubusercontent.com` while the repo is private.
+If you want a true curlable one-liner, the repo needs to be public or the script needs to be hosted somewhere else.
 
 ## Config
 
@@ -70,8 +77,8 @@ This plugin currently expects a VoxCPM2-compatible HTTP endpoint at:
 
 - `POST /tts`
 - request body includes `text`
-- optional fields include `cfg_value`, `inference_timesteps`, `format`, and `seed`
-- response body is raw audio bytes
+- optional fields include `cfg_value` and `inference_timesteps`
+- response body is JSON with base64 audio in `audio`, plus metadata like `sample_rate` and `duration`
 
 If the server contract differs, adjust `speech-provider.js` accordingly.
 
