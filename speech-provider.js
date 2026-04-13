@@ -70,6 +70,18 @@ export function buildVoxCPM2SpeechProvider(ctx) {
   return {
     id: "voxcpm2",
     label: "VoxCPM2",
+    isConfigured() {
+      const baseUrl = (cfg.baseUrl || DEFAULT_BASE_URL).toString().trim();
+      return Boolean(baseUrl);
+    },
+    getConfigSummary() {
+      return {
+        baseUrl: (cfg.baseUrl || DEFAULT_BASE_URL).toString().trim(),
+        hasApiKey: Boolean(cfg.apiKey),
+        hasBasicAuth: Boolean(cfg.username && cfg.password),
+        defaultVoicePrompt: cfg.defaultVoicePrompt || undefined,
+      };
+    },
     async synthesize(request) {
       const baseUrl = resolveBaseUrl(cfg, ctx);
       const outputFormat = normalizeFormat(request.format || cfg.defaultFormat);
