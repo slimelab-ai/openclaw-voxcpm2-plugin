@@ -43,6 +43,13 @@ function detectMimeType(format) {
   }
 }
 
+function decodeBase64Audio(encoded) {
+  if (!encoded || typeof encoded !== "string") {
+    throw new Error("VoxCPM2 response missing base64 audio payload");
+  }
+  return Buffer.from(encoded, "base64");
+}
+
 function buildTextWithVoicePrompt(text, voicePrompt) {
   const prompt = voicePrompt?.trim?.() ?? voicePrompt;
   const trimmedText = text?.trim?.() ?? text;
@@ -105,8 +112,8 @@ export function buildVoxCPM2SpeechProvider(ctx) {
         throw new Error(`VoxCPM2 request failed (${response.status}): ${text || response.statusText}`);
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      const payload = await response.json();
+      const buffer = decodeBase64Audio(payload.audio);
       if (!buffer.length) {
         throw new Error("VoxCPM2 response contained no audio");
       }
@@ -124,6 +131,8 @@ export function buildVoxCPM2SpeechProvider(ctx) {
           inferenceTimesteps: body.inference_timesteps,
           format: outputFormat,
           provider: "voxcpm2",
+          sampleRate: payload.sample_rate,
+          duration: payload.duration,
         },
       };
     },
