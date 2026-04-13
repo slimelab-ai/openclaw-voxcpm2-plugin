@@ -123,21 +123,10 @@ export function buildVoxCPM2SpeechProvider(ctx) {
       }
 
       return {
-        audio: {
-          buffer,
-          mimeType: detectMimeType(outputFormat),
-          fileName: `voxcpm2.${outputFormat}`,
-        },
-        model: "voxcpm2",
-        metadata: {
-          voicePrompt: voicePrompt || undefined,
-          cfgValue: body.cfg_value,
-          inferenceTimesteps: body.inference_timesteps,
-          format: outputFormat,
-          provider: "voxcpm2",
-          sampleRate: payload.sample_rate,
-          duration: payload.duration,
-        },
+        audioBuffer: buffer,
+        outputFormat,
+        fileExtension: `.${outputFormat}`,
+        voiceCompatible: false,
       };
     },
   };
