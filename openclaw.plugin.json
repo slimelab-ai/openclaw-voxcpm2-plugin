@@ -1,0 +1,54 @@
+{
+  "id": "voxcpm2",
+  "name": "VoxCPM2",
+  "description": "Speech provider for VoxCPM2 prompt-based text to speech",
+  "providers": ["voxcpm2"],
+  "contracts": {
+    "speechProviders": ["voxcpm2"]
+  },
+  "uiHints": {
+    "baseUrl": {
+      "label": "Base URL",
+      "placeholder": "http://127.0.0.1:7861"
+    },
+    "apiKey": {
+      "label": "API key",
+      "sensitive": true
+    },
+    "username": {
+      "label": "Username"
+    },
+    "password": {
+      "label": "Password",
+      "sensitive": true
+    },
+    "defaultVoicePrompt": {
+      "label": "Default voice prompt",
+      "placeholder": "A deep male voice, slow and friendly"
+    },
+    "defaultCfgValue": {
+      "label": "Default CFG value"
+    },
+    "defaultInferenceTimesteps": {
+      "label": "Default inference timesteps"
+    },
+    "defaultFormat": {
+      "label": "Default output format"
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "baseUrl": { "type": "string" },
+      "apiKey": { "type": "string" },
+      "username": { "type": "string" },
+      "password": { "type": "string" },
+      "defaultVoicePrompt": { "type": "string" },
+      "defaultCfgValue": { "type": "number" },
+      "defaultInferenceTimesteps": { "type": "number" },
+      "defaultFormat": { "type": "string", "enum": ["wav", "mp3", "flac"] },
+      "requestTimeoutMs": { "type": "number" }
+    }
+  }
+}
