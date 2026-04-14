@@ -13,15 +13,13 @@ It is designed for the same basic external-plugin workflow as the Slimelab A1111
 
 ## Install
 
-This repo is currently private, so anonymous `raw.githubusercontent.com` one-liners will 404.
-
-### Normal install/update
+### Quick install (one-liner)
 
 ```bash
-TMPDIR="$(mktemp -d)" && trap 'rm -rf "$TMPDIR"' EXIT && git clone git@github.com:slimelab-ai/openclaw-voxcpm2-plugin.git "$TMPDIR/openclaw-voxcpm2-plugin" && openclaw plugins install --force "$TMPDIR/openclaw-voxcpm2-plugin"
+bash <(curl -fsSL https://raw.githubusercontent.com/slimelab-ai/openclaw-voxcpm2-plugin/main/install.sh)
 ```
 
-If SSH auth is not configured but HTTPS auth is, use:
+### Install/update from source
 
 ```bash
 TMPDIR="$(mktemp -d)" && trap 'rm -rf "$TMPDIR"' EXIT && git clone https://github.com/slimelab-ai/openclaw-voxcpm2-plugin.git "$TMPDIR/openclaw-voxcpm2-plugin" && openclaw plugins install --force "$TMPDIR/openclaw-voxcpm2-plugin"
@@ -33,12 +31,30 @@ TMPDIR="$(mktemp -d)" && trap 'rm -rf "$TMPDIR"' EXIT && git clone https://githu
 openclaw plugins install -l /path/to/openclaw-voxcpm2-plugin
 ```
 
-### Repo-hosted installer script
-
-Not usable via anonymous `raw.githubusercontent.com` while the repo is private.
-If you want a true curlable one-liner, the repo needs to be public or the script needs to be hosted somewhere else.
-
 ## Config
+
+### Interactive configuration (recommended)
+
+After installation, run the interactive configuration script:
+
+```bash
+~/.openclaw/extensions/voxcpm2/configure.sh
+```
+
+This will prompt you for:
+- VoxCPM2 server URL (default: `http://127.0.0.1:7861`)
+- Default voice prompt
+- Default CFG value
+- Default inference timesteps
+- Default output format
+
+For updates, pass `--update` to preserve existing values as defaults:
+
+```bash
+~/.openclaw/extensions/voxcpm2/configure.sh --update
+```
+
+### Manual config
 
 Example config:
 

@@ -57,9 +57,20 @@ PY
 echo "Enabling voxcpm2 plugin ..."
 openclaw config set plugins.entries.voxcpm2.enabled true
 
+# Run interactive configuration if configure.sh exists in the installed plugin
+CONFIGURE_SCRIPT="$HOME/.openclaw/extensions/voxcpm2/configure.sh"
+if [[ -x "$CONFIGURE_SCRIPT" ]]; then
+    echo ""
+    echo "Running interactive configuration ..."
+    "$CONFIGURE_SCRIPT" --update
+else
+    echo ""
+    echo "Skipping interactive config (configure.sh not found)"
+fi
+
+echo ""
 echo "Restarting gateway ..."
 openclaw gateway restart
 
+echo ""
 echo "Done."
-echo "If needed, set the VoxCPM2 server URL with:"
-echo "  openclaw config set plugins.entries.voxcpm2.config.baseUrl http://127.0.0.1:7861"
