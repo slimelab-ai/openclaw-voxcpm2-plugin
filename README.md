@@ -10,6 +10,7 @@ It is designed for the same basic external-plugin workflow as the Slimelab A1111
 - sends TTS requests to a VoxCPM2 HTTP server, default `http://127.0.0.1:7861/tts`
 - supports prompt-based voice design by prepending a voice prompt like `(A deep male voice, slow and friendly)` to the spoken text
 - supports config defaults for voice prompt, CFG value, inference timesteps, and output format
+- supports OpenClaw telephony synthesis via `synthesizeTelephony()` for voice-call style integrations
 
 ## Install
 
@@ -47,6 +48,8 @@ This will prompt you for:
 - Default CFG value
 - Default inference timesteps
 - Default output format
+
+Telephony uses the same backend and currently reuses the configured voice prompt / synthesis defaults unless you set telephony-specific config keys manually.
 
 For updates, pass `--update` to preserve existing values as defaults:
 
@@ -86,6 +89,14 @@ openclaw config set plugins.entries.voxcpm2.config.defaultVoicePrompt "A deep ma
 ```
 
 Depending on current OpenClaw speech-selection behavior, you may also need to point your default speech provider or TTS path at `voxcpm2` in main config.
+
+### Telephony notes
+
+This plugin now implements OpenClaw's telephony speech hook. For telephony requests it returns:
+- `outputFormat: "wav"`
+- `sampleRate` from the VoxCPM2 server response
+
+If your voice-call stack later requires a stricter telephony encoding such as PCM or μ-law, that should be added as a backend/server capability rather than tunneled through the normal chat TTS path.
 
 ## API expectations
 

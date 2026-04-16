@@ -27,20 +27,8 @@ function buildHeaders(cfg) {
 
 function normalizeFormat(raw) {
   const format = (raw || DEFAULT_FORMAT).toString().trim().toLowerCase();
-  if (["wav", "mp3", "flac"].includes(format)) return format;
+  if (["wav", "mp3", "flac", "pcm"].includes(format)) return format;
   return DEFAULT_FORMAT;
-}
-
-function detectMimeType(format) {
-  switch (format) {
-    case "mp3":
-      return "audio/mpeg";
-    case "flac":
-      return "audio/flac";
-    case "wav":
-    default:
-      return "audio/wav";
-  }
 }
 
 function decodeBase64Audio(encoded) {
@@ -64,6 +52,44 @@ function maybeSet(body, key, value) {
   }
 }
 
+async function requestTts(ctx, cfg, body, timeoutMs) {
+  const baseUrl = resolveBaseUrl(cfg, ctx);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response;
+  try {
+    response = await fetch(`${baseUrl}/tts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...buildHeaders(cfg),
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error(`VoxCPM2 request timed out after ${timeoutMs}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`VoxCPM2 request failed (${response.status}): ${text || response.statusText}`);
+  }
+
+  const payload = await response.json();
+  const buffer = decodeBase64Audio(payload.audio);
+  if (!buffer.length) {
+    throw new Error("VoxCPM2 response contained no audio");
+  }
+  return { payload, buffer };
+}
+
 export function buildVoxCPM2SpeechProvider(ctx) {
   const cfg = resolveConfig(ctx.config);
 
@@ -75,7 +101,6 @@ export function buildVoxCPM2SpeechProvider(ctx) {
       return Boolean(baseUrl);
     },
     async synthesize(request) {
-      const baseUrl = resolveBaseUrl(cfg, ctx);
       const outputFormat = normalizeFormat(request.format || cfg.defaultFormat);
       const voicePrompt = request.voicePrompt || cfg.defaultVoicePrompt;
       const body = {
@@ -88,45 +113,35 @@ export function buildVoxCPM2SpeechProvider(ctx) {
       maybeSet(body, "seed", request.seed);
 
       const timeoutMs = request.timeoutMs ?? cfg.requestTimeoutMs ?? DEFAULT_TIMEOUT_MS;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-      let response;
-      try {
-        response = await fetch(`${baseUrl}/tts`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...buildHeaders(cfg),
-          },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        });
-      } catch (error) {
-        if (error?.name === "AbortError") {
-          throw new Error(`VoxCPM2 request timed out after ${timeoutMs}ms`);
-        }
-        throw error;
-      } finally {
-        clearTimeout(timeout);
-      }
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => "");
-        throw new Error(`VoxCPM2 request failed (${response.status}): ${text || response.statusText}`);
-      }
-
-      const payload = await response.json();
-      const buffer = decodeBase64Audio(payload.audio);
-      if (!buffer.length) {
-        throw new Error("VoxCPM2 response contained no audio");
-      }
+      const { buffer } = await requestTts(ctx, cfg, body, timeoutMs);
 
       return {
         audioBuffer: buffer,
         outputFormat,
         fileExtension: `.${outputFormat}`,
         voiceCompatible: false,
+      };
+    },
+    async synthesizeTelephony(request) {
+      const voicePrompt = cfg.telephonyVoicePrompt || cfg.defaultVoicePrompt;
+      const body = {
+        text: buildTextWithVoicePrompt(request.text, voicePrompt),
+      };
+
+      maybeSet(body, "cfg_value", cfg.telephonyCfgValue ?? cfg.defaultCfgValue ?? DEFAULT_CFG_VALUE);
+      maybeSet(body, "inference_timesteps", cfg.telephonyInferenceTimesteps ?? cfg.defaultInferenceTimesteps);
+
+      const timeoutMs = request.timeoutMs ?? cfg.requestTimeoutMs ?? DEFAULT_TIMEOUT_MS;
+      const { payload, buffer } = await requestTts(ctx, cfg, body, timeoutMs);
+      const sampleRate = Number(payload.sample_rate);
+      if (!Number.isFinite(sampleRate) || sampleRate <= 0) {
+        throw new Error("VoxCPM2 telephony response missing valid sample_rate");
+      }
+
+      return {
+        audioBuffer: buffer,
+        outputFormat: "wav",
+        sampleRate,
       };
     },
   };
