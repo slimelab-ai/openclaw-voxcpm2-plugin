@@ -14,17 +14,18 @@ It is designed for the same basic external-plugin workflow as the Slimelab A1111
 
 ## Install
 
-### Quick install (one-liner)
+### Install / update (one-liner)
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/slimelab-ai/openclaw-voxcpm2-plugin/main/install.sh)
 ```
 
-### Install/update from source
-
-```bash
-TMPDIR="$(mktemp -d)" && trap 'rm -rf "$TMPDIR"' EXIT && git clone https://github.com/slimelab-ai/openclaw-voxcpm2-plugin.git "$TMPDIR/openclaw-voxcpm2-plugin" && openclaw plugins install --force "$TMPDIR/openclaw-voxcpm2-plugin"
-```
+That is the main supported install path. It:
+- clones the repo fresh
+- installs or updates the plugin
+- preserves existing `voxcpm2` config
+- runs interactive configuration in update mode
+- restarts the gateway
 
 ### Local dev install
 
